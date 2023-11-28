@@ -82,6 +82,7 @@ if api_key:
         st.sidebar.error("Invalid API key. Please try again.")
         st.stop()
 else:
+    st.info("Please enter your OpenAI API key in the side bar to continue.")
     st.stop()
 
 
