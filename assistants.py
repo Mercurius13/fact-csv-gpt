@@ -110,7 +110,7 @@ if st.session_state.file_id_list:
 
 # Chat interface (available only after the chat is started)
 st.title("FACT CSV-GPT")
-st.write("This is an application which uses OpenAI to answer questions based on created by Siddhant Mohile.")
+st.write("An application which uses OpenAI to answer questions based on QuickSumm by ZeroAndOne Developers.")
 
 if st.session_state.start_chat:
     st.sidebar.markdown("Please reload the page to upload a new file")
@@ -168,3 +168,5 @@ if st.session_state.start_chat:
                 st.markdown(message)
 else:
     st.write("Please upload files and click 'Start Chat' to begin the conversation.")
+
+st.sidebar.markdown("<h5>Made by ZeroAndOne Developers</h5>", unsafe_allow_html=True)
