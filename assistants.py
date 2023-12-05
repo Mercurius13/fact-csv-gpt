@@ -128,7 +128,7 @@ if st.session_state.start_chat:
             st.markdown(message["content"])
 
     # Chat logic
-    if prompt := st.chat_input("What is up?"):
+    if prompt := st.chat_input("What's this file about"):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
