@@ -113,7 +113,7 @@ st.title("FACT CSV-GPT")
 st.write("An application which uses OpenAI to answer questions based on QuickSumm by ZeroAndOne Developers.")
 
 if st.session_state.start_chat:
-    st.sidebar.markdown("Please reload the page to upload a new file")
+    st.sidebar.warning("Please reload the page to upload a new file")
     # Initialize more session state variables
     if "openai_model" not in st.session_state:
         st.session_state.openai_model = "gpt-4-1106-preview"
@@ -121,6 +121,8 @@ if st.session_state.start_chat:
         st.session_state.messages = []
     if "thread_id" not in st.session_state:
         st.session_state.thread_id = client.beta.threads.create().id
+    if "running" not in st.session_state:
+        st.session_state.running = False
 
     # Display older messages
     for message in st.session_state.messages:
@@ -128,44 +130,51 @@ if st.session_state.start_chat:
             st.markdown(message["content"])
 
     # Chat logic
-    if prompt := st.chat_input("What's this file about"):
+    if prompt := st.chat_input("What's this file about?"):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
 
         # Thread Creation
-        thread_message = client.beta.threads.messages.create(
-            thread_id=st.session_state.thread_id,
-            role="user",
-            content=prompt
-        )
-
-        # Run instructions
-        run = client.beta.threads.runs.create(
-            thread_id=st.session_state.thread_id,
-            assistant_id=st.session_state.assistant_id,
-            instructions="Please answer the queries using the knowledge provided in the files."
-        )
-
-        # Retrieve the run response
-        while run.status != 'completed':
-            time.sleep(1)
-            run = client.beta.threads.runs.retrieve(
+        try:
+            thread_message = client.beta.threads.messages.create(
                 thread_id=st.session_state.thread_id,
-                run_id=run.id
+                role="user",
+                content=prompt
             )
-        messages = client.beta.threads.messages.list(st.session_state.thread_id)
 
-        # obtaining message content from the assistant
-        assistant_messages_for_run = [
-            message.content[0].text.value for message in messages
-            if message.run_id == run.id and message.role == "assistant"
-        ][::-1]
-        # Displaying new messages
-        for message in assistant_messages_for_run:
-            st.session_state.messages.append({"role": "assistant", "content": message})
-            with st.chat_message("assistant"):
-                st.markdown(message)
+            # Run instructions
+            run = client.beta.threads.runs.create(
+                thread_id=st.session_state.thread_id,
+                assistant_id=st.session_state.assistant_id,
+                instructions="Please answer the queries using the knowledge provided in the files."
+            )
+
+            # Retrieve the run response
+            while run.status != 'completed':
+                time.sleep(1)
+                run = client.beta.threads.runs.retrieve(
+                    thread_id=st.session_state.thread_id,
+                    run_id=run.id
+                )
+            messages = client.beta.threads.messages.list(st.session_state.thread_id)
+
+            # obtaining message content from the assistant
+            assistant_messages_for_run = [
+                message.content[0].text.value for message in messages
+                if message.run_id == run.id and message.role == "assistant"
+            ][::-1]
+            # Displaying new messages
+            for message in assistant_messages_for_run:
+                st.session_state.messages.append({"role": "assistant", "content": message})
+                with st.chat_message("assistant"):
+                    st.markdown(message)
+
+        except Exception as e:
+            print(e)
+            st.error("You need to wait for a response before adding messages. Please try your request again in a few seconds...")
+            time.sleep(5)
+            st.rerun()
 else:
     st.write("Please upload files and click 'Start Chat' to begin the conversation.")
 
